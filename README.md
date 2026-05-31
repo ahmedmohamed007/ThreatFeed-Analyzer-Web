@@ -1,2 +1,18 @@
-# ThreatFeed-Analyzer-Web
-Cyber Threat Intelligence aggregator that collects, filters, and analyzes security news from 50+ sources including thehackernews, Kaspersky, Mandiant, CISA &amp; more, with MITRE ATT&amp;CK mapping and one-click AI analysis
+What is ThreatFeed Analyzer?
+
+ThreatFeed Analyzer is a PowerShell script designed for 
+cybersecurity professionals who need to stay ahead of 
+threats — without spending hours browsing dozens of sources.
+
+Instead of visiting 20+ websites daily, ThreatFeed Analyzer 
+pulls RSS feeds from the most trusted security sources, 
+filters content based on your custom keywords, maps findings 
+to the MITRE ATT&CK Framework, and delivers an interactive 
+HTML dashboard — all in one run.
+
+> Let the intelligence come to you
+
+Feel free to connect, collaborate, or share your feedback. Connect with me
+[![Facebook](https://img.shields.io/badge/Facebook-%231877F2.svg?logo=Facebook&logoColor=white)](https://www.facebook.com/ahmed.mohamed.29153/)
+<img width="1324" height="768" alt="2026-05-29_154619" src="https://github.com/user-attachments/assets/6ba35b69-9306-4d62-8129-12d237b434ad" />
+<img width="1324" height="768" alt="2026-05-29_154619" src="https://github.com/user-attachments/assets/73a5b9e6-895e-434e-b26f-279e44911b33" />
