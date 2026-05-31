@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>APT Intelligence Report - MITRE ATT&CK</title>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js'></script>
+<style>
+:root{--bg:#f4f7f6;--txt:#333;--card:#fff;--head:#2c3e50;--accent:#3498db;--kwbg:#e8f4f8;--mitrebg:#fff3e0;--new-bg:#ff4757;--new-glow:rgba(255,71,87,0.3)}
+[data-theme='dark']{--bg:#1a1a1a;--txt:#e0e0e0;--card:#2d2d2d;--head:#1a1a1a;--accent:#5dade2;--kwbg:#1e3a4a;--mitrebg:#3a2e1e;--new-bg:#ff6b81;--new-glow:rgba(255,107,129,0.4)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--txt);transition:all .3s;line-height:1.6}
+.palestine-banner{background:#000;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:1.5;position:sticky;top:0;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,0.3)}
+.palestine-banner-content{flex:1;display:flex;align-items:center;gap:10px}
+.palestine-flag{font-size:24px}
+.palestine-text{flex:1}
+.palestine-text a{color:#2196F3;text-decoration:none;font-weight:bold;transition:color .2s}
+.palestine-text a:hover{text-decoration:underline;color:#1976D2}
+.banner-close{background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer;padding:0 10px;line-height:1;transition:color .2s}
+.banner-close:hover{color:#ff4757}
+.wrap{margin:20px auto;max-width:1400px;padding:0 15px}
+h2{margin:20px 0;font-size:24px}
+.controls{display:flex;gap:15px;margin-bottom:25px;align-items:center;flex-wrap:wrap}
+input[type='text'],select{padding:10px;border-radius:5px;border:1px solid #ccc;background:var(--card);color:var(--txt);font-size:14px;width:100%;max-width:300px}
+select{min-width:160px;cursor:pointer}
+.filter-group{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+.filter-label{font-weight:600;font-size:14px;white-space:nowrap}
+.switch-container{display:flex;align-items:center;gap:8px;font-weight:bold}
+.switch{position:relative;display:inline-block;width:50px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;transition:.4s;border-radius:24px}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:4px;bottom:3px;background:#fff;transition:.4s;border-radius:50%}
+input:checked+.slider{background:var(--accent)}
+input:checked+.slider:before{transform:translateX(24px)}
+.vuln-btn,.mitre-btn{background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:bold;font-size:14px;display:inline-flex;align-items:center;gap:8px;transition:all .3s;box-shadow:0 4px 15px rgba(231,76,60,0.3);white-space:nowrap}
+.mitre-btn{background:linear-gradient(135deg,#ff9800 0%,#f57c00 100%);box-shadow:0 4px 15px rgba(255,152,0,0.3)}
+.vuln-btn:hover{background:linear-gradient(135deg,#c0392b 0%,#a93226 100%);transform:translateY(-2px);box-shadow:0 6px 20px rgba(231,76,60,0.4)}
+.mitre-btn:hover{background:linear-gradient(135deg,#f57c00 0%,#e65100 100%);transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,152,0,0.4)}
+.stats-info{margin-bottom:20px;padding:15px;background:var(--card);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+.stats-info p{margin:5px 0;font-size:14px}
+.stats-info strong{color:var(--accent)}
+.chart-container{background:var(--card);padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);margin-bottom:25px;display:flex;align-items:center;gap:25px;flex-wrap:wrap}
+.chart-wrapper{flex:0 0 180px;max-width:180px;height:180px}
+.chart-legend{flex:1;min-width:220px}
+.chart-legend h3{margin:0 0 15px 0;font-size:18px}
+.legend-item{display:flex;align-items:center;margin-bottom:8px;font-size:13px;padding:6px;border-radius:5px;transition:background .2s}
+.legend-item:hover{background:rgba(0,0,0,0.05)}
+[data-theme='dark'] .legend-item:hover{background:rgba(255,255,255,0.05)}
+.legend-color{width:18px;height:18px;border-radius:3px;margin-right:8px;flex-shrink:0}
+.legend-text{flex:1;font-weight:500}
+.legend-count{font-weight:600;margin-left:8px;color:var(--accent)}
+.new-badge{display:inline-block;background:var(--new-bg);color:#fff;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:bold;text-transform:uppercase;margin-left:8px;animation:pulse 2s infinite;box-shadow:0 0 10px var(--new-glow)}
+@keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 10px var(--new-glow)}50%{transform:scale(1.05);box-shadow:0 0 15px var(--new-glow)}}
+.new-row{background:rgba(255,71,87,0.08)!important;border-left:4px solid var(--new-bg)!important}
+[data-theme='dark'] .new-row{background:rgba(255,107,129,0.12)!important}
+.mitre-badge{display:inline-block;background:#ff9800;color:#fff;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:bold;margin:2px;white-space:nowrap}
+.mitre-badge:hover{background:#f57c00;cursor:pointer}
+.table-container{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;background:var(--card);box-shadow:0 2px 10px rgba(0,0,0,0.1);border-radius:8px;overflow:hidden;min-width:800px}
+th,td{text-align:left;padding:12px;border-bottom:1px solid rgba(0,0,0,0.1);font-size:13px}
+[data-theme='dark'] th,[data-theme='dark'] td{border-bottom:1px solid rgba(255,255,255,0.1)}
+th{background:var(--head);color:#fff;font-weight:600;text-transform:uppercase;font-size:11px;white-space:nowrap}
+tr{transition:all .2s}
+tr:hover{background:rgba(0,0,0,0.03)}
+[data-theme='dark'] tr:hover{background:rgba(255,255,255,0.03)}
+tr:last-child td{border-bottom:none}
+td:nth-child(4){background:var(--kwbg);font-weight:500;font-size:0.9em}
+td:nth-child(5){background:var(--mitrebg);font-weight:500;font-size:0.85em}
+a{color:var(--accent);text-decoration:none;font-weight:500;transition:color .2s;word-break:break-word}
+a:hover{color:#2980b9;text-decoration:underline}
+.article-link:visited{color:#9b59b6;opacity:0.7;text-decoration:line-through}
+.link-cell{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.article-link{font-size:14px;font-weight:600}
+.ai-btns{display:flex;gap:5px;flex-wrap:wrap}
+.ai-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s;white-space:nowrap}
+.ai-btn:hover{transform:translateY(-1px)}
+.chatgpt-btn{background:linear-gradient(135deg,#10a37f 0%,#1a7f64 100%)}
+.chatgpt-btn:hover{background:linear-gradient(135deg,#0d8c6d 0%,#148059 100%);box-shadow:0 2px 8px rgba(16,163,127,0.3)}
+.claude-btn{background:linear-gradient(135deg,#DE7356 0%,#C15F3C 100%)}
+.claude-btn:hover{background:linear-gradient(135deg,#C15F3C 0%,#A84D2E 100%);box-shadow:0 2px 8px rgba(193,95,60,0.3)}
+.gemini-btn{background:linear-gradient(135deg,#4285f4 0%,#1a73e8 100%)}
+.gemini-btn:hover{background:linear-gradient(135deg,#1a73e8 0%,#0d5bdd 100%);box-shadow:0 2px 8px rgba(66,133,244,0.3)}
+.ai-icon{width:14px;height:14px;fill:currentColor}
+.modal{display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.7);animation:fadeIn .3s;overflow-y:auto}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:var(--card);margin:2% auto;padding:0;width:95%;max-width:1200px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.3);animation:slideDown .3s;max-height:90vh;overflow-y:auto}
+@keyframes slideDown{from{transform:translateY(-50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{background:linear-gradient(135deg,#ff9800 0%,#f57c00 100%);color:#fff;padding:18px 25px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{margin:0;font-size:20px}
+.close-modal{color:#fff;font-size:28px;font-weight:bold;cursor:pointer;background:none;border:none;padding:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .2s}
+.close-modal:hover{background:rgba(255,255,255,0.2)}
+.modal-body{padding:25px}
+.mitre-chart{background:var(--card);padding:15px;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.1);margin-bottom:25px;height:280px}
+.mitre-controls{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.mitre-search{flex:1;min-width:220px;padding:10px;border-radius:8px;border:2px solid #ddd;font-size:13px;background:var(--card);color:var(--txt)}
+.mitre-technique-card{background:var(--card);padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #ff9800;box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:all .2s}
+.mitre-technique-card:hover{box-shadow:0 4px 15px rgba(0,0,0,0.15);transform:translateX(5px)}
+.mitre-technique-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mitre-technique-id{font-weight:bold;color:#ff9800;font-size:14px}
+.mitre-technique-name{font-weight:600;font-size:16px;margin-bottom:5px;color:var(--txt)}
+.mitre-technique-count{background:#ff9800;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:bold}
+.mitre-articles-list{margin-top:10px;padding-left:20px}
+.mitre-article-item{font-size:13px;margin:5px 0;color:var(--txt)}
+.mitre-article-link{color:var(--accent);text-decoration:none}
+.mitre-article-link:hover{text-decoration:underline}
+.see-more-btn{background:linear-gradient(135deg,#ff9800 0%,#f57c00 100%);color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all .3s;box-shadow:0 2px 8px rgba(255,152,0,0.3)}
+.see-more-btn:hover{background:linear-gradient(135deg,#f57c00 0%,#e65100 100%);transform:translateY(-2px);box-shadow:0 4px 12px rgba(255,152,0,0.4)}
+.see-more-btn.expanded{background:linear-gradient(135deg,#2196f3 0%,#1976d2 100%)}
+.see-more-btn.expanded:hover{background:linear-gradient(135deg,#1976d2 0%,#1565c0 100%)}
+.mitre-articles-hidden{animation:slideDownArticles .3s ease-out}
+@keyframes slideDownArticles{from{opacity:0;max-height:0}to{opacity:1;max-height:2000px}}
+.vuln-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:15px;margin-bottom:25px}
+.stat-card{background:linear-gradient(135deg,var(--card-bg) 0%,var(--card-bg-dark) 100%);padding:15px;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.1);border-left:5px solid var(--card-color);transition:transform .2s;cursor:pointer}
+.stat-card:hover{transform:translateY(-5px)}
+.stat-card.active{box-shadow:0 6px 25px rgba(0,0,0,0.2);border-left-width:8px}
+.stat-card.critical{--card-bg:#fee;--card-bg-dark:#fdd;--card-color:#e74c3c}
+.stat-card.high{--card-bg:#ffe8e0;--card-bg-dark:#ffd4c4;--card-color:#f39c12}
+.stat-card.medium{--card-bg:#fff9e6;--card-bg-dark:#fff3cc;--card-color:#f1c40f}
+.stat-card.low{--card-bg:#e8f8f5;--card-bg-dark:#d0f0e8;--card-color:#27ae60}
+.stat-label{font-size:11px;text-transform:uppercase;font-weight:600;opacity:0.8;margin-bottom:5px}
+.stat-value{font-size:32px;font-weight:bold;color:var(--card-color)}
+.vuln-chart{background:var(--card);padding:15px;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.1);margin-bottom:25px;height:280px}
+.vuln-controls{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.vuln-search{flex:1;min-width:220px;padding:10px;border-radius:8px;border:2px solid #ddd;font-size:13px;background:var(--card);color:var(--txt)}
+.vuln-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1)}
+.vuln-table th{background:var(--head);color:#fff;padding:12px;text-align:left;font-weight:600;text-transform:uppercase;font-size:11px}
+.vuln-table td{padding:12px;border-bottom:1px solid rgba(0,0,0,0.1);font-size:13px}
+[data-theme='dark'] .vuln-table td{border-bottom:1px solid rgba(255,255,255,0.1)}
+.vuln-table tr:hover{background:rgba(0,0,0,0.03)}
+[data-theme='dark'] .vuln-table tr:hover{background:rgba(255,255,255,0.03)}
+.severity-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:bold;text-transform:uppercase}
+.severity-critical{background:#e74c3c;color:#fff}
+.severity-high{background:#f39c12;color:#fff}
+.severity-medium{background:#f1c40f;color:#333}
+.severity-low{background:#27ae60;color:#fff}
+.severity-unknown{background:#95a5a6;color:#fff}
+.score-badge{display:inline-block;padding:4px 8px;border-radius:5px;font-weight:bold;background:var(--accent);color:#fff;font-size:12px}
+.loading-overlay{text-align:center;padding:60px 20px;font-size:18px}
+.spinner{border:4px solid rgba(0,0,0,0.1);border-left-color:#3498db;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;margin:0 auto 20px}
+.loading .spinner{border:4px solid rgba(0,0,0,0.1);border-left-color:#e74c3c;border-radius:50%;width:36px;height:36px;animation:spin 1s linear infinite;margin:0 auto 18px}
+.loading{text-align:center;padding:35px;font-size:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.modal-header.vuln-header{background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%)}
+.last-updated{font-size:12px;color:#999;margin-top:5px}
+.error-msg{background:#fee;border:1px solid #e74c3c;color:#c0392b;padding:20px;border-radius:8px;text-align:center;margin:40px 0;font-size:16px}
+[data-theme='dark'] .error-msg{background:#3a1a1a;border-color:#ff6b81;color:#ff6b81}
+.scan-btn{background:linear-gradient(135deg,#2ecc71 0%,#27ae60 100%);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:bold;font-size:14px;display:inline-flex;align-items:center;gap:8px;transition:all .3s;box-shadow:0 4px 15px rgba(46,204,113,0.3);white-space:nowrap}
+.scan-btn:hover{background:linear-gradient(135deg,#27ae60 0%,#1e8449 100%);transform:translateY(-2px);box-shadow:0 6px 20px rgba(46,204,113,0.4)}
+.scan-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.scan-btn .scan-spinner{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-left-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+.scan-btn.scanning .scan-spinner{display:inline-block}
+.scan-btn.scanning .scan-icon{display:none}
+.scan-progress{margin:2% auto;width:90%;max-width:600px}
+.scan-progress-bar{background:var(--card);border-radius:12px;padding:25px;box-shadow:0 10px 40px rgba(0,0,0,0.3);animation:slideDown .3s}
+.scan-progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.scan-progress-header h3{margin:0;font-size:16px}
+.scan-progress-track{background:#e0e0e0;border-radius:10px;height:12px;overflow:hidden;margin-bottom:10px}
+[data-theme='dark'] .scan-progress-track{background:#444}
+.scan-progress-fill{background:linear-gradient(90deg,#2ecc71,#27ae60);height:100%;border-radius:10px;transition:width .3s;width:0%}
+.scan-progress-text{font-size:13px;color:#999;margin-bottom:5px}
+.scan-progress-stats{display:flex;gap:20px;margin-top:12px;font-size:13px}
+.scan-progress-stats span{font-weight:600}
+.scan-progress-stats .found{color:#2ecc71}
+.scan-progress-stats .skipped{color:#f39c12}
+.scan-progress-stats .failed{color:#e74c3c}
+.login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);z-index:9999;display:flex;align-items:center;justify-content:center}
+.login-box{background:#fff;border-radius:16px;padding:40px;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:slideDown .5s}
+[data-theme='dark'] .login-box{background:#2d2d2d}
+.login-box h2{text-align:center;margin-bottom:8px;font-size:24px;color:var(--txt,#333)}
+.login-subtitle{text-align:center;color:#999;font-size:13px;margin-bottom:25px}
+.login-icon{text-align:center;font-size:48px;margin-bottom:15px}
+.login-field{margin-bottom:18px}
+.login-field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--txt,#333)}
+.login-field input{width:100%;padding:12px 15px;border:2px solid #ddd;border-radius:8px;font-size:14px;background:var(--bg,#f4f7f6);color:var(--txt,#333);transition:border-color .3s}
+.login-field input:focus{outline:none;border-color:#3498db}
+.login-btn{width:100%;padding:12px;background:linear-gradient(135deg,#3498db 0%,#2980b9 100%);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;transition:all .3s;margin-top:5px}
+.login-btn:hover{background:linear-gradient(135deg,#2980b9 0%,#1f6da8 100%);transform:translateY(-2px);box-shadow:0 6px 20px rgba(52,152,219,0.4)}
+.login-error{color:#e74c3c;font-size:13px;text-align:center;margin-top:12px;display:none;font-weight:600}
+.login-footer{text-align:center;margin-top:22px;padding-top:18px;border-top:1px solid rgba(0,0,0,0.1)}
+.login-footer p{font-size:11px;color:#999;margin:0;line-height:1.6}
+.login-footer .dev-name{font-weight:700;color:var(--txt,#555)}
+.login-social{margin-top:10px;display:flex;justify-content:center}
+.login-social a{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#1877f2;color:#fff;transition:all .3s;text-decoration:none}
+.login-social a:hover{transform:translateY(-3px);box-shadow:0 4px 12px rgba(24,119,242,0.4)}
+.logout-btn{background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;margin-left:auto}
+.logout-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.6)}
+</style>
+</head>
+<body>
+
+<div class="login-overlay" id="loginOverlay">
+<div class="login-box">
+<div class="login-icon">&#x1F6E1;&#xFE0F;</div>
+<h2>ThreatFeed Analyzer</h2>
+<p class="login-subtitle">Enter your credentials to access the dashboard</p>
+<div class="login-field">
+<label>Username</label>
+<input type="text" id="loginUser" placeholder="Username" autofocus onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+</div>
+<div class="login-field">
+<label>Password</label>
+<input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+</div>
+<button class="login-btn" onclick="doLogin()">Login</button>
+<p class="login-error" id="loginError">Invalid username or password</p>
+<div class="login-footer">
+<p>ThreatFeed Analyzer</p>
+<p>Developed by <span class="dev-name">Ahmed Mohamed (Aziz)</span></p>
+<p>All Rights Reserved. 2026 &copy;</p>
+<div class="login-social">
+<a href="https://www.facebook.com/ahmed.mohamed.29153/" target="_blank" title="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+</div>
+</div>
+</div>
+</div>
+
+<div class="palestine-banner" id="palestineBanner">
+<div class="palestine-banner-content">
+<span class="palestine-flag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 60" width="40" height="27" style="display:inline-block;vertical-align:middle;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,0.5);flex-shrink:0"><rect width="90" height="20" fill="#000000"/><rect y="20" width="90" height="20" fill="#FFFFFF"/><rect y="40" width="90" height="20" fill="#007A3D"/><polygon points="0,0 45,30 0,60" fill="#CE1126"/></svg></span>
+<div class="palestine-text">
+<strong><a href="https://www.palestinediasporamovement.com/palestine-101" target="_blank" style="color:#2196F3;text-decoration:none">#Free Palestine</a></strong> - Stand for humanity!
+ Palestine has a right to defend itself. Together, we can put an end to the Gaza genocide. Let's unite to <a href="https://data.techforpalestine.org/" target="_blank">#SAVE GAZA</a> and ensure that every life in this region has access to the most basic necessities.
+</div>
+</div>
+<button class="logout-btn" onclick="doLogout()">&#x1F512; Logout</button>
+<button class="banner-close" onclick="closeBanner()" aria-label="Close banner">&#xD7;</button>
+</div>
+
+<div class="wrap">
+<h2>&#x1F6E1;&#xFE0F; Threat Intelligence Report</h2>
+
+<div id="loadingOverlay" class="loading-overlay">
+<div class="spinner"></div>
+<p>Loading threat intelligence data...</p>
+</div>
+
+<div id="mainContent" style="display:none">
+
+<div class="stats-info">
+<p><strong>Total Articles:</strong> <span id="totalCount">0</span></p>
+<p><strong>New This Run:</strong> <span id="newCount" style="color:var(--new-bg);font-weight:bold">0</span></p>
+<p><strong>Displayed:</strong> <span id="displayedCount">0</span></p>
+<p><strong>MITRE Techniques Detected:</strong> <span id="mitreCount" style="color:#ff9800;font-weight:bold">0</span></p>
+<p><strong>Feeds Scanned:</strong> <span id="feedCount">0</span></p>
+<p class="last-updated"><strong>Last Updated:</strong> <span id="lastUpdated">-</span></p>
+</div>
+
+<div class='controls'>
+<div class="filter-group">
+<label class="filter-label">&#x1F4C5; Date:</label>
+<select id="dateFilter" onchange="filterData()">
+<option value="all">All Data</option>
+<option value="1">Today</option>
+<option value="7">Last Week</option>
+<option value="30">Last Month</option>
+<option value="90">Last 3 Months</option>
+<option value="180">Last 6 Months</option>
+<option value="270">Last 9 Months</option>
+<option value="365">Last Year</option>
+</select>
+</div>
+
+<div class="filter-group">
+<label class="filter-label">&#x2728; Status:</label>
+<select id="statusFilter" onchange="filterData()">
+<option value="all">All Articles</option>
+<option value="new">New Only</option>
+<option value="old">Old Only</option>
+</select>
+</div>
+
+<button class="scan-btn" id="scanBtn" onclick="scanFeeds()">
+<span class="scan-icon">&#x1F4E1;</span>
+<span class="scan-spinner"></span>
+<span class="scan-label">Scan Feeds</span>
+</button>
+
+<button class="vuln-btn" onclick="openVulnModal()">
+<span>&#x1F534;</span>
+<span>Vulnerability Report</span>
+</button>
+
+<button class="mitre-btn" onclick="openMitreModal()">
+<span>&#x2694;&#xFE0F;</span>
+<span>MITRE ATT&CK</span>
+</button>
+
+<input type='text' id='searchInput' placeholder='Search for keywords, titles, or sources...' onkeyup='filterData()'>
+
+<div class="switch-container">
+<span>&#x2600;&#xFE0F;</span>
+<label class="switch">
+<input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+<span class="slider"></span>
+</label>
+<span>&#x1F319;</span>
+</div>
+</div>
+
+<div class="chart-container">
+<div class="chart-wrapper">
+<canvas id="chart"></canvas>
+</div>
+<div class="chart-legend">
+<h3>Keyword Distribution</h3>
+<div id="legend"></div>
+</div>
+</div>
+
+<div class="table-container">
+<table>
+<thead>
+<tr><th>Date</th><th>Source</th><th>Title</th><th>Keywords</th><th>MITRE ATT&CK</th><th>Link</th></tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+</div>
+</div>
+
+<div id="scanModal" class="modal">
+<div class="scan-progress">
+<div class="scan-progress-bar">
+<div class="scan-progress-header">
+<h3>&#x1F4E1; Scanning Threat Feeds...</h3>
+<span id="scanPercent">0%</span>
+</div>
+<div class="scan-progress-track">
+<div class="scan-progress-fill" id="scanFill"></div>
+</div>
+<div class="scan-progress-text" id="scanStatus">Initializing...</div>
+<div class="scan-progress-stats">
+<span class="found">Found: <span id="scanFound">0</span></span>
+<span class="skipped">Duplicates: <span id="scanSkipped">0</span></span>
+<span class="failed">Failed: <span id="scanFailed">0</span></span>
+</div>
+</div>
+</div>
+</div>
+
+<div id="mitreModal" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<h2>&#x2694;&#xFE0F; MITRE ATT&CK Techniques Detected</h2>
+<button class="close-modal" onclick="closeMitreModal()">&#xD7;</button>
+</div>
+<div class="modal-body">
+<div class="mitre-chart">
+<canvas id="mitreChart"></canvas>
+</div>
+<div class="mitre-controls">
+<input type="text" class="mitre-search" id="mitreSearch" placeholder="&#x1F50D; Search MITRE Technique..." onkeyup="filterMitreTechniques()">
+</div>
+<div id="mitreContent"></div>
+</div>
+</div>
+</div>
+
+<div id="vulnModal" class="modal">
+<div class="modal-content">
+<div class="modal-header vuln-header">
+<h2>&#x1F534; Vulnerability Report (Last 7 Days)</h2>
+<button class="close-modal" onclick="closeVulnModal()">&#xD7;</button>
+</div>
+<div class="modal-body">
+<div id="vulnLoading" class="loading">
+<div class="spinner"></div>
+<p>Loading CVE data from NVD...</p>
+</div>
+<div id="vulnContent" style="display:none">
+<div class="vuln-stats">
+<div class="stat-card critical" onclick="filterBySeverity('CRITICAL')">
+<div class="stat-label">&#x1F534; Critical</div>
+<div class="stat-value" id="criticalCount">0</div>
+</div>
+<div class="stat-card high" onclick="filterBySeverity('HIGH')">
+<div class="stat-label">&#x1F7E0; High</div>
+<div class="stat-value" id="highCount">0</div>
+</div>
+<div class="stat-card medium" onclick="filterBySeverity('MEDIUM')">
+<div class="stat-label">&#x1F7E1; Medium</div>
+<div class="stat-value" id="mediumCount">0</div>
+</div>
+<div class="stat-card low" onclick="filterBySeverity('LOW')">
+<div class="stat-label">&#x1F7E2; Low</div>
+<div class="stat-value" id="lowCount">0</div>
+</div>
+</div>
+<div class="vuln-chart">
+<canvas id="vulnChart"></canvas>
+</div>
+<div class="vuln-controls">
+<input type="text" class="vuln-search" id="vulnSearch" placeholder="&#x1F50D; Search CVE ID or Description..." onkeyup="filterVulnTable()">
+</div>
+<div class="table-container">
+<table class="vuln-table">
+<thead>
+<tr><th>CVE ID</th><th>Published Date</th><th>Severity</th><th>CVSS Score</th><th>Description</th></tr>
+</thead>
+<tbody id="vulnTableBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const AUTH_HASH='a94a8fe5ccb19ba61c4c0873d391e987982fbbd3';
+
+async function sha1(str){
+    const buf=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function doLogin(){
+    const user=document.getElementById('loginUser').value.trim();
+    const pass=document.getElementById('loginPass').value;
+    const passHash=await sha1(pass);
+    if(user==='test'&&passHash===AUTH_HASH){
+        sessionStorage.setItem('tf_auth','1');
+        document.getElementById('loginOverlay').style.display='none';
+        document.getElementById('loginError').style.display='none';
+    }else{
+        document.getElementById('loginError').style.display='block';
+        document.getElementById('loginPass').value='';
+        document.getElementById('loginPass').focus();
+    }
+}
+
+function doLogout(){
+    sessionStorage.removeItem('tf_auth');
+    document.getElementById('loginOverlay').style.display='flex';
+    document.getElementById('loginUser').value='';
+    document.getElementById('loginPass').value='';
+    document.getElementById('loginError').style.display='none';
+}
+
+function checkAuth(){
+    if(sessionStorage.getItem('tf_auth')==='1'){
+        document.getElementById('loginOverlay').style.display='none';
+    }
+}
+
+let allData=[];
+let keywordData={};
+let mitreData={};
+let metadata={};
+let chart=null;
+let mitreChart=null;
+let vulnChart=null;
+let allVulnData=[];
+let filteredVulnData=[];
+let activeSeverityFilter='ALL';
+const colors=['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#E7E9ED','#8BC34A','#FF5722','#795548'];
+const VULN_DAYS=7;
+
+const SCAN_FEEDS=[
+"https://www.thehackernews.com/feeds/posts/default",
+"https://www.securelist.com/feed/",
+"https://www.microsoft.com/en-us/security/blog/feed/",
+"https://unit42.paloaltonetworks.com/feed/",
+"https://www.welivesecurity.com/feed/",
+"https://www.crowdstrike.com/blog/feed/",
+"https://www.mandiant.com/resources/blog/rss.xml",
+"https://research.checkpoint.com/feed/",
+"https://blog.badsectorlabs.com/feeds/all.atom.xml",
+"https://cyberbuilders.substack.com/feed",
+"https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml",
+"https://blogs.cisco.com/security/feed",
+"http://feeds.trendmicro.com/TrendMicroResearch",
+"https://www.bleepingcomputer.com/feed/",
+"https://www.techrepublic.com/rssfeeds/topic/cybersecurity/",
+"https://www.proofpoint.com/us/rss.xml",
+"https://www.imperva.com/blog/feed/",
+"https://heimdalsecurity.com/blog/feed/",
+"https://www.yeswehack.com/rss.xml",
+"https://feeds.feedburner.com/GoogleOnlineSecurityBlog",
+"https://any.run/cybersecurity-blog/feed/",
+"https://www.exploitone.com/feed/",
+"https://www.cisa.gov/cybersecurity-advisories/all.xml",
+"https://hackread.com/feed/",
+"https://www.hackmageddon.com/feed/",
+"https://www.infosecurity-magazine.com/rss/news/",
+"https://krebsonsecurity.com/feed/",
+"https://www.zdnet.com/news/rss.xml",
+"https://blog.0patch.com/feeds/posts/default",
+"https://www.bitdefender.com/nuxt/api/en-us/rss/labs/",
+"https://feeds.feedburner.com/feedburner/Talos",
+"https://blog.cloudflare.com/tag/security/rss",
+"https://projectzero.google/feed.xml",
+"https://www.malwarebytes.com/blog/feed/index.xml",
+"https://www.cisecurity.org/feed/advisories",
+"https://isc.sans.edu/rssfeed_full.xml",
+"https://nao-sec.org/feed",
+"https://www.reddit.com/r/cybersecurity/.rss",
+"https://www.reddit.com/r/netsec/.rss",
+"https://www.reddit.com/r/blueteamsec/.rss",
+"https://www.reddit.com/r/purpleteamsec/.rss",
+"https://www.reddit.com/r/redteamsec/.rss",
+"https://blog.qualys.com/feed",
+"https://blog.quarkslab.com/feeds/all.rss.xml",
+"https://sensepost.com/rss.xml",
+"https://www.sentinelone.com/labs/feed/",
+"https://www.darkreading.com/rss.xml",
+"https://cybersecuritynews.com/feed/"
+];
+
+const SCAN_KEYWORDS=["APT","campaign","Advanced Persistent Threat","Zero-day","Ransomware","Lateral movement","Persistence","Evasion","Data leaks","Privilege Escalation","Trojan","Infostealer","Botnet","Banking Trojan","spear phishing","social engineering","credential dumping","EDR bypass","DLL sideloading","Process Injection","Reflective DLL","sandbox escape","fileless malware","in-memory malware","supply chain","compromise","breach","Malware","CVE","Exploit","vulnerability","phishing","initial access"];
+
+const SCAN_MITRE={
+"T1566":{name:"Phishing",kw:["phishing","spear phishing","malicious email","email lure","attachment","spoofed email","fake invoice"]},
+"T1059":{name:"Command and Scripting Interpreter",kw:["powershell","pwsh","ps1","cmd.exe","command line","bash","python","python script","wscript","cscript","javascript","vbscript"]},
+"T1055":{name:"Process Injection",kw:["process injection","dll injection","reflective loading","hollowing","process hollowing","thread injection","apc injection"]},
+"T1190":{name:"Exploit Public-Facing Application",kw:["web exploit","sql injection","sqli","rce","remote code execution","zero-day","path traversal","file upload exploit"]},
+"T1078":{name:"Valid Accounts",kw:["compromised credentials","stolen password","valid account","successful logon","unauthorized login","credential reuse"]},
+"T1021":{name:"Remote Services",kw:["rdp","remote desktop","ssh","smb","psexec","winrm","remote login","vnc","teamviewer","anydesk"]},
+"T1105":{name:"Ingress Tool Transfer",kw:["download payload","curl","wget","bitsadmin","file transfer","dropper","stager","malware download"]},
+"T1486":{name:"Data Encrypted for Impact",kw:["ransomware","encryption","encrypted files","crypto locker","ransom note","file encryption"]},
+"T1082":{name:"System Information Discovery",kw:["system info","host discovery","os version","hardware info","environment discovery"]},
+"T1071":{name:"Application Layer Protocol",kw:["c2","command and control","c&c","http c2","dns tunneling","https beacon","websocket"]},
+"T1083":{name:"File and Directory Discovery",kw:["file search","directory listing","dir listing","file enumeration"]},
+"T1574":{name:"Hijack Execution Flow",kw:["dll hijacking","search order hijack","path interception","side loading"]},
+"T1003":{name:"OS Credential Dumping",kw:["mimikatz","lsass dump","procdump lsass","sam dump","credential dumping","sekurlsa"]},
+"T1027":{name:"Obfuscated Files or Information",kw:["obfuscation","encoded","base64 payload","packed malware","steganography","encrypted payload"]},
+"T1070":{name:"Indicator Removal",kw:["clear logs","log deletion","wevtutil","anti-forensics","clear event log"]},
+"T1204":{name:"User Execution",kw:["user clicked","user opened","malicious macro","document execution","unsafe download"]},
+"T1053":{name:"Scheduled Task/Job",kw:["schtasks","cron job","task scheduler","at command","persistent task"]},
+"T1562":{name:"Impair Defenses",kw:["disable antivirus","tamper protection","disable firewall","stop security service","endpoint protection disabled"]},
+"T1087":{name:"Account Discovery",kw:["user enumeration","net user","active directory users","whoami","account discovery"]},
+"T1018":{name:"Remote System Discovery",kw:["network scan","nmap","ping sweep","port scan","host scan","net view"]}
+};
+
+const CORS_PROXIES=[
+'https://api.allorigins.win/raw?url=',
+'https://corsproxy.io/?url='
+];
+
+function stripHtml(html){
+    const tmp=document.createElement('div');
+    tmp.innerHTML=html;
+    return tmp.textContent||tmp.innerText||'';
+}
+
+function extractTextFromItem(item){
+    const fields=['title','description','summary','content','content\\:encoded','subtitle'];
+    let text='';
+    fields.forEach(f=>{
+        const els=item.getElementsByTagName(f);
+        if(els.length>0) text+=' '+stripHtml(els[0].textContent||'');
+    });
+    const encoded=item.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/','encoded');
+    if(encoded.length>0) text+=' '+stripHtml(encoded[0].textContent||'');
+    return text.replace(/\s+/g,' ').trim();
+}
+
+function detectMitre(text){
+    const found=[];
+    const lower=text.toLowerCase();
+    for(const[id,tech] of Object.entries(SCAN_MITRE)){
+        for(const kw of tech.kw){
+            if(lower.includes(kw.toLowerCase())){
+                found.push(id+' - '+tech.name);
+                break;
+            }
+        }
+    }
+    return [...new Set(found)].sort();
+}
+
+function extractLink(item,feedUrl){
+    let link=null;
+
+    const linkEl=item.getElementsByTagName('link');
+    if(linkEl.length>0){
+        link=linkEl[0].getAttribute('href')||linkEl[0].textContent||'';
+    }
+    if(!link||!link.match(/^https?:\/\//)){
+        const guid=item.getElementsByTagName('guid');
+        if(guid.length>0){
+            const g=guid[0].textContent||'';
+            if(g.match(/^https?:\/\//)) link=g;
+        }
+    }
+    if(!link||!link.match(/^https?:\/\//)){
+        const id=item.getElementsByTagName('id');
+        if(id.length>0){
+            const i=id[0].textContent||'';
+            if(i.match(/^https?:\/\//)) link=i;
+        }
+    }
+    if(!link||link.match(/\.xml$|\/feed\/?$|\/rss\/?$/)||!link.match(/^https?:\/\//)){
+        link=feedUrl;
+    }
+    return link.trim();
+}
+
+function extractDate(item){
+    const dateFields=['pubDate','published','updated','dc:date','date'];
+    for(const f of dateFields){
+        const el=item.getElementsByTagName(f);
+        if(el.length>0){
+            const d=new Date(el[0].textContent);
+            if(!isNaN(d.getTime())) return d;
+        }
+    }
+    const dcDate=item.getElementsByTagNameNS('http://purl.org/dc/elements/1.1/','date');
+    if(dcDate.length>0){
+        const d=new Date(dcDate[0].textContent);
+        if(!isNaN(d.getTime())) return d;
+    }
+    return new Date();
+}
+
+function extractTitle(item){
+    const t=item.getElementsByTagName('title');
+    if(t.length>0) return stripHtml(t[0].textContent||'').trim()||'Untitled';
+    return 'Untitled';
+}
+
+async function fetchWithProxy(url){
+    for(const proxy of CORS_PROXIES){
+        try{
+            const resp=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(20000)});
+            if(resp.ok) return await resp.text();
+        }catch(e){continue;}
+    }
+    throw new Error('All proxies failed');
+}
+
+let scanRunning=false;
+
+async function scanFeeds(){
+    if(scanRunning) return;
+    scanRunning=true;
+
+    const btn=document.getElementById('scanBtn');
+    btn.classList.add('scanning');
+    btn.disabled=true;
+    document.querySelector('.scan-label').textContent='Scanning...';
+
+    document.getElementById('scanModal').style.display='block';
+    document.getElementById('scanFound').textContent='0';
+    document.getElementById('scanSkipped').textContent='0';
+    document.getElementById('scanFailed').textContent='0';
+    document.getElementById('scanFill').style.width='0%';
+    document.getElementById('scanPercent').textContent='0%';
+
+    document.getElementById('loadingOverlay').style.display='none';
+    document.getElementById('mainContent').style.display='block';
+
+    const existingLinks=new Set(allData.map(a=>a.lnk));
+    let found=0,skipped=0,failed=0;
+    const newArticles=[];
+    const total=SCAN_FEEDS.length;
+
+    for(let i=0;i<total;i++){
+        const feedUrl=SCAN_FEEDS[i];
+        const host=(new URL(feedUrl)).hostname;
+        const pct=Math.round(((i+1)/total)*100);
+        document.getElementById('scanStatus').textContent='['+( i+1)+'/'+total+'] '+host;
+        document.getElementById('scanFill').style.width=pct+'%';
+        document.getElementById('scanPercent').textContent=pct+'%';
+
+        try{
+            const xml=await fetchWithProxy(feedUrl);
+            const parser=new DOMParser();
+            const doc=parser.parseFromString(xml,'text/xml');
+
+            let items=[...doc.querySelectorAll('item')];
+            if(items.length===0) items=[...doc.querySelectorAll('entry')];
+
+            for(const item of items){
+                const fullText=extractTextFromItem(item);
+                if(!fullText) continue;
+
+                const matchedKw=[];
+                const lower=fullText.toLowerCase();
+                for(const kw of SCAN_KEYWORDS){
+                    const re=new RegExp('\\b'+kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+                    if(re.test(fullText)) matchedKw.push(kw);
+                }
+                if(matchedKw.length===0) continue;
+
+                const link=extractLink(item,feedUrl);
+                if(!link) continue;
+
+                if(existingLinks.has(link)){
+                    skipped++;
+                    document.getElementById('scanSkipped').textContent=skipped;
+                    continue;
+                }
+                existingLinks.add(link);
+
+                const itemDate=extractDate(item);
+                const mitre=detectMitre(fullText);
+
+                newArticles.push({
+                    ts:Math.floor(itemDate.getTime()/1000),
+                    dt:itemDate.getFullYear()+'-'+String(itemDate.getMonth()+1).padStart(2,'0')+'-'+String(itemDate.getDate()).padStart(2,'0')+' '+String(itemDate.getHours()).padStart(2,'0')+':'+String(itemDate.getMinutes()).padStart(2,'0'),
+                    src:feedUrl,
+                    ttl:extractTitle(item),
+                    kw:[...new Set(matchedKw)].sort().join(', '),
+                    mitre:mitre.join('; '),
+                    lnk:link,
+                    isNew:true
+                });
+
+                found++;
+                document.getElementById('scanFound').textContent=found;
+            }
+        }catch(e){
+            failed++;
+            document.getElementById('scanFailed').textContent=failed;
+        }
+    }
+
+    allData.forEach(a=>a.isNew=false);
+    allData=newArticles.concat(allData);
+    allData.sort((a,b)=>b.ts-a.ts);
+
+    keywordData={};
+    mitreData={};
+    allData.forEach(a=>{
+        a.kw.split(',').forEach(k=>{k=k.trim();if(k)keywordData[k]=(keywordData[k]||0)+1;});
+        if(a.mitre) a.mitre.split(';').forEach(m=>{m=m.trim();if(m)mitreData[m]=(mitreData[m]||0)+1;});
+    });
+
+    document.getElementById('totalCount').textContent=allData.length;
+    document.getElementById('newCount').textContent=found;
+    document.getElementById('mitreCount').textContent=Object.keys(mitreData).length;
+    document.getElementById('lastUpdated').textContent=new Date().toLocaleString();
+
+    document.getElementById('scanStatus').textContent='Scan complete!';
+    document.getElementById('scanFill').style.width='100%';
+    document.getElementById('scanPercent').textContent='Done!';
+
+    filterData();
+
+    setTimeout(()=>{
+        document.getElementById('scanModal').style.display='none';
+        btn.classList.remove('scanning');
+        btn.disabled=false;
+        document.querySelector('.scan-label').textContent='Scan Feeds';
+        scanRunning=false;
+    },2000);
+}
+
+async function loadData(){
+    try{
+        const response=await fetch('data/feed-data.json');
+        if(!response.ok) throw new Error('Data file not found. Run the feed fetcher first or trigger the GitHub Action.');
+        const data=await response.json();
+
+        allData=data.articles||[];
+        keywordData=data.keywordStats||{};
+        mitreData=data.mitreStats||{};
+        metadata=data.metadata||{};
+
+        document.getElementById('loadingOverlay').style.display='none';
+        document.getElementById('mainContent').style.display='block';
+
+        document.getElementById('totalCount').textContent=allData.length;
+        const newItems=allData.filter(x=>x.isNew).length;
+        document.getElementById('newCount').textContent=newItems;
+        document.getElementById('mitreCount').textContent=Object.keys(mitreData).length;
+        document.getElementById('feedCount').textContent=metadata.totalFeeds||'-';
+
+        if(metadata.lastUpdated){
+            const d=new Date(metadata.lastUpdated);
+            document.getElementById('lastUpdated').textContent=d.toLocaleString();
+        }
+
+        filterData();
+    }catch(err){
+        document.getElementById('loadingOverlay').style.display='none';
+        document.getElementById('mainContent').style.display='block';
+        filterData();
+    }
+}
+
+function toggleTheme(){
+    const dark=document.getElementById('themeToggle').checked;
+    document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+    localStorage.setItem('theme',dark?'dark':'light');
+}
+
+function loadTheme(){
+    const savedTheme=localStorage.getItem('theme');
+    if(savedTheme==='dark'){
+        document.documentElement.setAttribute('data-theme','dark');
+        document.getElementById('themeToggle').checked=true;
+    }
+}
+
+function getDaysAgo(days){
+    return Math.floor(Date.now()/1000)-(days*86400);
+}
+
+function filterData(){
+    const search=document.getElementById('searchInput').value.toUpperCase();
+    const dateVal=document.getElementById('dateFilter').value;
+    const statusVal=document.getElementById('statusFilter').value;
+    const cutoff=dateVal==='all'?0:getDaysAgo(parseInt(dateVal));
+
+    let displayed=0;
+    let kwCount={};
+    const tbody=document.getElementById('tableBody');
+    tbody.innerHTML='';
+
+    allData.forEach(item=>{
+        const matchSearch=!search||(item.ttl.toUpperCase().includes(search)||item.src.toUpperCase().includes(search)||item.kw.toUpperCase().includes(search)||(item.mitre&&item.mitre.toUpperCase().includes(search)));
+        const matchDate=dateVal==='all'||item.ts>=cutoff;
+        const matchStatus=statusVal==='all'||(statusVal==='new'&&item.isNew)||(statusVal==='old'&&!item.isNew);
+
+        if(matchSearch&&matchDate&&matchStatus){
+            displayed++;
+            item.kw.split(',').forEach(k=>{
+                k=k.trim();
+                if(k)kwCount[k]=(kwCount[k]||0)+1;
+            });
+
+            const row=tbody.insertRow();
+            if(item.isNew) row.className='new-row';
+
+            const escapedLink=item.lnk.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+            const escapedTitle=item.ttl.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+            const linkWithBadge=item.isNew?'<a href="'+item.lnk+'" target="_blank" class="article-link">View Article</a><span class="new-badge" style="margin-left:5px">NEW</span>':'<a href="'+item.lnk+'" target="_blank" class="article-link">View Article</a>';
+            const mitreBadges=item.mitre?item.mitre.split(';').map(m=>'<span class="mitre-badge" onclick="searchMitre(\''+m.trim().split(' ')[0]+'\')">'+m.trim()+'</span>').join(''):'';
+
+            row.innerHTML='<td>'+item.dt+'</td><td>'+item.src+'</td><td>'+item.ttl+(item.isNew?'<span class="new-badge">NEW</span>':'')+'</td><td>'+item.kw+'</td><td>'+mitreBadges+'</td><td><div class="link-cell">'+linkWithBadge+'<div class="ai-btns"><button class="ai-btn chatgpt-btn" onclick="openChatGPT(\''+escapedLink+'\',\''+escapedTitle+'\')"><svg class="ai-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M22.3 8.7c.2-.5.3-1 .3-1.5 0-1.7-.9-3.3-2.4-4.2-.8-.5-1.7-.8-2.6-.8-1 0-1.9.3-2.7.9-.8.6-1.4 1.4-1.7 2.3-.7.1-1.3.4-1.9.8-.6.4-1 1-1.3 1.6-.5.9-.7 1.9-.5 2.9.1 1 .6 1.9 1.3 2.6-.2.5-.3 1-.3 1.6 0 1.7.9 3.3 2.4 4.2.8.5 1.7.8 2.6.8 1 0 1.9-.3 2.7-.9.8-.6 1.4-1.4 1.7-2.3.7-.1 1.3-.4 1.9-.8.6-.4 1-1 1.3-1.6.5-.9.7-1.9.5-2.9-.1-1-.6-1.9-1.3-2.6z"/></svg>ChatGPT</button><button class="ai-btn claude-btn" onclick="openClaude(\''+escapedLink+'\',\''+escapedTitle+'\')"><svg class="ai-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M17.5 3L7 8.5v7L17.5 21l10.5-5.5v-7L17.5 3z"/></svg>Claude</button><button class="ai-btn gemini-btn" onclick="openGemini(\''+escapedLink+'\',\''+escapedTitle+'\')"><svg class="ai-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 7v10l10 5 10-5V7L12 2z"/></svg>Gemini</button></div></div></td>';
+        }
+    });
+
+    document.getElementById('displayedCount').textContent=displayed;
+    updateChart(kwCount);
+}
+
+function updateChart(kwCount){
+    const sortedKw=Object.entries(kwCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const labels=sortedKw.map(x=>x[0]);
+    const data=sortedKw.map(x=>x[1]);
+    const bgColors=sortedKw.map((x,i)=>colors[i%colors.length]);
+
+    const legendDiv=document.getElementById('legend');
+    legendDiv.innerHTML='';
+    sortedKw.forEach((kw,i)=>{
+        const item=document.createElement('div');
+        item.className='legend-item';
+        item.innerHTML='<div class="legend-color" style="background:'+bgColors[i]+'"></div><span class="legend-text">'+kw[0]+'</span><span class="legend-count">'+kw[1]+'</span>';
+        legendDiv.appendChild(item);
+    });
+
+    if(chart)chart.destroy();
+    const ctx=document.getElementById('chart').getContext('2d');
+    chart=new Chart(ctx,{
+        type:'doughnut',
+        data:{labels:labels,datasets:[{data:data,backgroundColor:bgColors,borderWidth:2,borderColor:getComputedStyle(document.documentElement).getPropertyValue('--card')}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
+    });
+}
+
+function openMitreModal(){
+    document.getElementById('mitreModal').style.display='block';
+    renderMitreTechniques();
+    updateMitreChart();
+}
+
+function closeMitreModal(){
+    document.getElementById('mitreModal').style.display='none';
+}
+
+function renderMitreTechniques(){
+    const mitreContent=document.getElementById('mitreContent');
+    mitreContent.innerHTML='';
+
+    const mitreMap={};
+    allData.forEach(item=>{
+        if(item.mitre){
+            item.mitre.split(';').forEach(tech=>{
+                const techTrim=tech.trim();
+                if(techTrim){
+                    if(!mitreMap[techTrim]){
+                        mitreMap[techTrim]={count:0,articles:[]};
+                    }
+                    mitreMap[techTrim].count++;
+                    mitreMap[techTrim].articles.push({title:item.ttl,link:item.lnk,date:item.dt});
+                }
+            });
+        }
+    });
+
+    const sortedTechs=Object.entries(mitreMap).sort((a,b)=>b[1].count-a[1].count);
+
+    sortedTechs.forEach(([tech,data],index)=>{
+        const parts=tech.split(' - ');
+        const techId=parts[0];
+        const techName=parts.slice(1).join(' - ');
+
+        const initialShow=5;
+        const hasMore=data.articles.length>initialShow;
+        const articlesToShow=hasMore?data.articles.slice(0,initialShow):data.articles;
+        const remainingCount=data.articles.length-initialShow;
+
+        const card=document.createElement('div');
+        card.className='mitre-technique-card';
+
+        let html='';
+        html+='<div class="mitre-technique-header">';
+        html+='<div>';
+        html+='<div class="mitre-technique-id">'+techId+'</div>';
+        html+='<div class="mitre-technique-name">'+techName+'</div>';
+        html+='</div>';
+        html+='<div class="mitre-technique-count">'+data.count+' article'+(data.count>1?'s':'')+'</div>';
+        html+='</div>';
+
+        html+='<div class="mitre-articles-list" id="mitre-list-'+index+'">';
+        articlesToShow.forEach(art=>{
+            html+='<div class="mitre-article-item">• <a href="'+art.link+'" target="_blank" class="mitre-article-link">'+art.title+'</a> <span style="color:#999;font-size:11px">('+art.date+')</span></div>';
+        });
+        html+='</div>';
+
+        if(hasMore){
+            html+='<div style="text-align:center;margin-top:10px">';
+            html+='<button class="see-more-btn" onclick="toggleMitreArticles('+index+', '+data.articles.length+')" id="toggle-btn-'+index+'">';
+            html+='▼ See More ('+remainingCount+' more)';
+            html+='</button>';
+            html+='</div>';
+
+            html+='<div class="mitre-articles-list mitre-articles-hidden" id="mitre-list-extra-'+index+'" style="display:none">';
+            data.articles.slice(initialShow).forEach(art=>{
+                html+='<div class="mitre-article-item">• <a href="'+art.link+'" target="_blank" class="mitre-article-link">'+art.title+'</a> <span style="color:#999;font-size:11px">('+art.date+')</span></div>';
+            });
+            html+='</div>';
+        }
+
+        card.innerHTML=html;
+        mitreContent.appendChild(card);
+    });
+}
+
+function toggleMitreArticles(index,totalCount){
+    const extraList=document.getElementById('mitre-list-extra-'+index);
+    const toggleBtn=document.getElementById('toggle-btn-'+index);
+
+    if(extraList.style.display==='none'){
+        extraList.style.display='block';
+        toggleBtn.innerHTML='▲ See Less';
+        toggleBtn.classList.add('expanded');
+    }else{
+        extraList.style.display='none';
+        const remainingCount=totalCount-5;
+        toggleBtn.innerHTML='▼ See More ('+remainingCount+' more)';
+        toggleBtn.classList.remove('expanded');
+    }
+}
+
+function updateMitreChart(){
+    const sortedMitre=Object.entries(mitreData).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const labels=sortedMitre.map(x=>x[0].split(' - ')[0]);
+    const data=sortedMitre.map(x=>x[1]);
+    const bgColors=['#065f46','#047857','#059669','#10b981','#34d399','#6ee7b7','#a7f3d0','#d1fae5','#ecfdf5','#f0fdf4'];
+
+    if(mitreChart)mitreChart.destroy();
+    const ctx=document.getElementById('mitreChart').getContext('2d');
+    mitreChart=new Chart(ctx,{
+        type:'bar',
+        data:{labels:labels,datasets:[{label:'Occurrences',data:data,backgroundColor:bgColors,borderWidth:0}]},
+        options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}
+    });
+}
+
+function filterMitreTechniques(){
+    const search=document.getElementById('mitreSearch').value.toUpperCase();
+    const cards=document.querySelectorAll('.mitre-technique-card');
+    cards.forEach(card=>{
+        const text=card.textContent.toUpperCase();
+        card.style.display=text.includes(search)?'block':'none';
+    });
+}
+
+function searchMitre(techniqueId){
+    openMitreModal();
+    setTimeout(()=>{
+        document.getElementById('mitreSearch').value=techniqueId;
+        filterMitreTechniques();
+    },100);
+}
+
+function openChatGPT(url,title){
+    window.open('https://chatgpt.com/?q='+encodeURIComponent('Please analyze this cybersecurity article "'+title+'" and provide a professional, well-structured, technically accurate summary. Include: 1. Executive Summary 2. Key Technical Details 3. Threat Actor/Campaign Information (if applicable) 4. Impact and Risk Assessment 5. MITRE ATT&CK Techniques (if detected) 6. Recommended Mitigations with example. Article URL: '+url),'_blank');
+}
+
+function openClaude(url,title){
+    window.open('https://claude.ai/new?q='+encodeURIComponent('Please analyze this cybersecurity article "'+title+'" and provide a professional, well-structured, technically accurate summary. Include: 1. Executive Summary 2. Key Technical Details 3. Threat Actor/Campaign Information (if applicable) 4. Impact and Risk Assessment 5. MITRE ATT&CK Techniques (if detected) 6. Recommended Mitigations with example. Article URL: '+url),'_blank');
+}
+
+function openGemini(url,title){
+    const prompt='Please analyze this cybersecurity article "'+title+'" and provide a professional, well-structured, technically accurate summary. Include: 1. Executive Summary 2. Key Technical Details 3. Threat Actor/Campaign Information (if applicable) 4. Impact and Risk Assessment 5. MITRE ATT&CK Techniques (if detected) 6. Recommended Mitigations with example. Article URL: '+url;
+    navigator.clipboard.writeText(prompt).then(()=>{
+        window.open('https://gemini.google.com/app','_blank');
+        alert('Prompt copied to clipboard! Paste it in Gemini (Ctrl+V or Cmd+V).');
+    }).catch(()=>{
+        window.open('https://gemini.google.com/app','_blank');
+        alert('Please manually paste: Summarize this article: '+url);
+    });
+}
+
+async function openVulnModal(){
+    document.getElementById('vulnModal').style.display='block';
+    document.getElementById('vulnLoading').style.display='block';
+    document.getElementById('vulnContent').style.display='none';
+    activeSeverityFilter='ALL';
+    await fetchVulnerabilities();
+}
+
+function closeVulnModal(){
+    document.getElementById('vulnModal').style.display='none';
+}
+
+async function fetchVulnerabilities(){
+    try{
+        const endDate=new Date();
+        const startDate=new Date();
+        startDate.setDate(startDate.getDate()-VULN_DAYS);
+
+        const startStr=startDate.toISOString().split('T')[0]+'T00:00:00.000';
+        const endStr=endDate.toISOString().split('T')[0]+'T23:59:59.999';
+
+        const url='https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate='+startStr+'&pubEndDate='+endStr;
+
+        const response=await fetch(url);
+        const data=await response.json();
+
+        if(data.vulnerabilities){
+            allVulnData=data.vulnerabilities.map(v=>{
+                const cve=v.cve;
+                const metrics=cve.metrics;
+                let severity='UNKNOWN';
+                let score=0;
+
+                if(metrics?.cvssMetricV31&&metrics.cvssMetricV31.length>0){
+                    severity=metrics.cvssMetricV31[0].cvssData.baseSeverity||'UNKNOWN';
+                    score=metrics.cvssMetricV31[0].cvssData.baseScore||0;
+                }else if(metrics?.cvssMetricV3&&metrics.cvssMetricV3.length>0){
+                    severity=metrics.cvssMetricV3[0].cvssData.baseSeverity||'UNKNOWN';
+                    score=metrics.cvssMetricV3[0].cvssData.baseScore||0;
+                }else if(metrics?.cvssMetricV2&&metrics.cvssMetricV2.length>0){
+                    severity=metrics.cvssMetricV2[0].baseSeverity||'UNKNOWN';
+                    score=metrics.cvssMetricV2[0].cvssData.baseScore||0;
+                }
+
+                const desc=cve.descriptions?.find(d=>d.lang==='en')?.value||'No description available';
+
+                return{
+                    id:cve.id,
+                    published:new Date(cve.published),
+                    severity:severity,
+                    score:score,
+                    description:desc
+                };
+            });
+
+            filteredVulnData=[...allVulnData];
+            displayVulnData();
+        }else{
+            document.getElementById('vulnLoading').innerHTML='<p>No vulnerabilities found.</p>';
+        }
+    }catch(err){
+        document.getElementById('vulnLoading').innerHTML='<p style="color:red">Error loading data: '+err.message+'</p>';
+    }
+}
+
+function displayVulnData(){
+    document.getElementById('vulnLoading').style.display='none';
+    document.getElementById('vulnContent').style.display='block';
+
+    const stats={CRITICAL:0,HIGH:0,MEDIUM:0,LOW:0};
+    filteredVulnData.forEach(v=>{
+        if(stats.hasOwnProperty(v.severity))stats[v.severity]++;
+    });
+
+    document.getElementById('criticalCount').textContent=stats.CRITICAL;
+    document.getElementById('highCount').textContent=stats.HIGH;
+    document.getElementById('mediumCount').textContent=stats.MEDIUM;
+    document.getElementById('lowCount').textContent=stats.LOW;
+
+    updateVulnChart(stats);
+    renderVulnTable();
+}
+
+function updateVulnChart(stats){
+    const labels=['Critical','High','Medium','Low'];
+    const data=[stats.CRITICAL,stats.HIGH,stats.MEDIUM,stats.LOW];
+    const bgColors=['#e74c3c','#f39c12','#f1c40f','#27ae60'];
+
+    if(vulnChart)vulnChart.destroy();
+    const ctx=document.getElementById('vulnChart').getContext('2d');
+    vulnChart=new Chart(ctx,{
+        type:'bar',
+        data:{labels:labels,datasets:[{label:'Vulnerabilities',data:data,backgroundColor:bgColors,borderWidth:0}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
+    });
+}
+
+function escapeHtml(text){
+    const div=document.createElement('div');
+    div.appendChild(document.createTextNode(String(text)));
+    return div.innerHTML;
+}
+
+function renderVulnTable(){
+    const tbody=document.getElementById('vulnTableBody');
+    tbody.innerHTML='';
+
+    const sortedData=[...filteredVulnData].sort((a,b)=>b.published-a.published);
+
+    sortedData.forEach(v=>{
+        const row=tbody.insertRow();
+        const dateStr=v.published.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+        const sevClass='severity-'+v.severity.toLowerCase();
+        const cveUrl='https://nvd.nist.gov/vuln/detail/'+escapeHtml(v.id);
+        const displaySeverity=v.severity==='UNKNOWN'?'NVD assessment not yet provided.':escapeHtml(v.severity);
+        const scoreDisplay=v.score>0?'<span class="score-badge">'+v.score.toFixed(1)+'</span>':'<span style="color:#999">N/A</span>';
+        row.innerHTML='<td><a href="'+cveUrl+'" target="_blank" style="font-weight:bold;color:var(--accent)">'+escapeHtml(v.id)+'</a></td><td>'+escapeHtml(dateStr)+'</td><td><span class="severity-badge '+sevClass+'">'+displaySeverity+'</span></td><td>'+scoreDisplay+'</td><td>'+escapeHtml(v.description)+'</td>';
+    });
+}
+
+function filterBySeverity(severity){
+    document.querySelectorAll('.stat-card').forEach(c=>c.classList.remove('active'));
+    if(activeSeverityFilter===severity){
+        activeSeverityFilter='ALL';
+        filteredVulnData=[...allVulnData];
+    }else{
+        activeSeverityFilter=severity;
+        filteredVulnData=allVulnData.filter(v=>v.severity===severity);
+        event.currentTarget.classList.add('active');
+    }
+    displayVulnData();
+}
+
+function filterVulnTable(){
+    const search=document.getElementById('vulnSearch').value.toUpperCase();
+    if(!search){
+        filteredVulnData=activeSeverityFilter==='ALL'?[...allVulnData]:allVulnData.filter(v=>v.severity===activeSeverityFilter);
+    }else{
+        const baseData=activeSeverityFilter==='ALL'?allVulnData:allVulnData.filter(v=>v.severity===activeSeverityFilter);
+        filteredVulnData=baseData.filter(v=>v.id.toUpperCase().includes(search)||v.description.toUpperCase().includes(search));
+    }
+    renderVulnTable();
+}
+
+window.onclick=function(event){
+    if(event.target==document.getElementById('mitreModal')) closeMitreModal();
+    if(event.target==document.getElementById('vulnModal')) closeVulnModal();
+}
+
+function closeBanner(){
+    document.getElementById('palestineBanner').style.display='none';
+}
+
+window.onload=()=>{
+    checkAuth();
+    loadTheme();
+    loadData();
+};
+</script>
+</body>
+</html>
