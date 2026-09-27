@@ -2,11 +2,16 @@ name: Update Threat Feeds
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '17 * * * *'
+
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: update-threat-feeds
+  cancel-in-progress: false
 
 jobs:
   update:
@@ -16,15 +21,35 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Fetch threat feeds
         shell: pwsh
         run: pwsh scripts/fetch-feeds.ps1
 
+      - name: Check generated data
+        shell: bash
+        run: |
+          if [ ! -f data/feed-data.json ]; then
+            echo "ERROR: feed-data.json was not generated"
+            exit 1
+          fi
+
+          echo "Generated file:"
+          ls -lh data/feed-data.json
+
       - name: Commit updated data
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
           git add data/feed-data.json
-          git diff --cached --quiet || git commit -m "Update feed data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "No changes detected in feed-data.json"
+          else
+            git commit -m "Update feed data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi
